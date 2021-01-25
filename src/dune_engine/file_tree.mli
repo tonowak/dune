@@ -56,6 +56,15 @@ module Dir : sig
   val fold :
     t -> traverse:Sub_dirs.Status.Set.t -> init:'a -> f:(t -> 'a -> 'a) -> 'a
 
+  module Fold (M : Monad_intf.S1) : sig
+    val fold :
+         t
+      -> traverse:Sub_dirs.Status.Set.t
+      -> init:'acc
+      -> f:(t -> 'acc -> 'acc M.t)
+      -> 'acc M.t
+  end
+
   (** Return the contents of the dune (or jbuild) file in this directory *)
   val dune_file : t -> Dune_file.t option
 

@@ -70,7 +70,9 @@ val set_rule_generators :
      init:(unit -> unit)
   -> gen_rules:
        (   Context_or_install.t
-        -> (dir:Path.Build.t -> string list -> extra_sub_directories_to_keep)
+        -> (   dir:Path.Build.t
+            -> string list
+            -> extra_sub_directories_to_keep Fiber.t)
            option)
   -> unit
 
@@ -89,13 +91,13 @@ val prefix_rules : unit Build.t -> f:(unit -> 'a) -> 'a
 (** [eval_pred t \[glob\]] returns the list of files in [File_selector.dir glob]
     that matches [File_selector.predicate glob]. The list of files includes the
     list of targets. *)
-val eval_pred : File_selector.t -> Path.Set.t
+val eval_pred : File_selector.t -> Path.Set.t Fiber.t
 
 (** Returns the set of targets in the given directory. *)
-val targets_of : dir:Path.t -> Path.Set.t
+val targets_of : dir:Path.t -> Path.Set.t Fiber.t
 
 (** Load the rules for this directory. *)
-val load_dir : dir:Path.t -> unit
+val load_dir : dir:Path.t -> unit Fiber.t
 
 (** Sets the package assignment *)
 val set_packages : (Path.Build.t -> Package.Id.Set.t) -> unit
@@ -144,7 +146,7 @@ val do_build : request:'a Build.t -> 'a Fiber.t
 
 (** {2 Other queries} *)
 
-val is_target : Path.t -> bool
+val is_target : Path.t -> bool Fiber.t
 
 val static_deps_of_request : 'a Build.t -> Path.Set.t
 
@@ -153,7 +155,7 @@ val rules_for_transitive_closure : Path.Set.t -> Rule.t list
 val contexts : unit -> Build_context.t Context_name.Map.t
 
 (** List of all buildable targets. *)
-val all_targets : unit -> Path.Build.Set.t
+val all_targets : unit -> Path.Build.Set.t Fiber.t
 
 (** The set of files that were created in the source tree and need to be
     deleted. *)

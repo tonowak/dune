@@ -287,7 +287,7 @@ module Dir0 = struct
     ; sub_dir_as_t :
         ( Path.Source.t
         , t Output.t option
-        , Path.Source.t -> t Output.t option )
+        , Path.Source.t -> t Output.t option Fiber.t )
         Memo.Cell.t
     }
 
@@ -402,10 +402,10 @@ module rec Memoized : sig
        Path.Source.t
     -> ( Path.Source.t
        , Dir0.t Output.t option
-       , Path.Source.t -> Dir0.t Output.t option )
+       , Path.Source.t -> Dir0.t Output.t option Fiber.t )
        Memo.Cell.t
 
-  val find_dir : Path.Source.t -> Dir0.t option
+  val find_dir : Path.Source.t -> Dir0.t option Fiber.t
 end = struct
   open Memoized
 
@@ -585,7 +585,7 @@ end = struct
     | Some parent_dir ->
       let open Option.O in
       let* { Output.dir = parent_dir; visited = dirs_visited } =
-        Memo.Cell.get_sync (find_dir_raw parent_dir)
+        Memo.Cell.get_async (find_dir_raw parent_dir)
       in
       let* dir_status, virtual_ =
         let basename = Path.Source.basename path in
@@ -641,13 +641,13 @@ end = struct
       Memo.create "find-dir-raw" ~doc:"get file tree"
         ~input:(module Path.Source)
         ~output:(Simple (module Output))
-        ~visibility:Memo.Visibility.Hidden Sync find_dir_raw_impl
+        ~visibility:Memo.Visibility.Hidden Async find_dir_raw_impl
     in
     Memo.cell memo
 
   let find_dir p =
     let open Option.O in
-    let+ { Output.dir; visited = _ } = Memo.Cell.get_sync (find_dir_raw p) in
+    let+ { Output.dir; visited = _ } = Memo.Cell.get_async (find_dir_raw p) in
     dir
 
   let root () = Option.value_exn (find_dir Path.Source.root)
@@ -691,7 +691,7 @@ module Dir = struct
   include Dir0
 
   let sub_dir_as_t (s : sub_dir) =
-    (Memo.Cell.get_sync s.sub_dir_as_t |> Option.value_exn).dir
+    (Memo.Cell.get_async s.sub_dir_as_t |> Option.value_exn).dir
 
   let fold_sub_dirs (t : t) ~init ~f =
     String.Map.foldi t.contents.sub_dirs ~init ~f:(fun basename s acc ->
@@ -718,6 +718,24 @@ module Dir = struct
       let acc = f t acc in
       fold_sub_dirs t ~init:acc ~f:(fun ~basename:_ t acc ->
           fold t ~traverse ~init:acc ~f)
+
+  module Fold (M : Monad_intf.S1) = struct
+    open M.O
+
+    let fold_sub_dirs (t : t) ~init ~f =
+      String.Map.to_list t.contents.sub_dirs
+      |> Result.List.fold_left ~init ~f:(fun basename s acc ->
+             f ~basename (sub_dir_as_t s) acc)
+
+    let fold t ~traverse ~init:acc ~f =
+      let must_traverse = Sub_dirs.Status.Map.find traverse t.status in
+      match must_traverse with
+      | false -> M.return acc
+      | true ->
+        let* acc = f t acc in
+        fold_sub_dirs t ~init:acc ~f:(fun ~basename:_ t acc ->
+            fold t ~traverse ~init:acc ~f)
+  end
 
   let cram_tests (t : t) =
     match Dune_project.cram t.project with

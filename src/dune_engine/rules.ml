@@ -187,8 +187,15 @@ let produce_dir ~dir rules =
 
 let collect_opt f = Memo.Implicit_output.collect_sync implicit_output f
 
+let collect_async_opt f = Memo.Implicit_output.collect_async implicit_output f
+
 let collect f =
   let result, out = collect_opt f in
+  (result, Option.value out ~default:T.empty)
+
+let collect_async f =
+  let open Fiber.O in
+  let+ result, out = collect_async_opt f in
   (result, Option.value out ~default:T.empty)
 
 let collect_unit f =

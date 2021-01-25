@@ -104,6 +104,8 @@ val map_rules : t -> f:(Rule.t -> Rule.t) -> t
 
 val collect : (unit -> 'a) -> 'a * t
 
+val collect_async : (unit -> 'a Fiber.t) -> ('a * t) Fiber.t
+
 val collect_unit : (unit -> unit) -> t
 
 val collect_opt : (unit -> 'a) -> 'a * t option
