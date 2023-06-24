@@ -201,7 +201,7 @@ produced in the sandbox and copied back:
 This is the internal stamp file:
 
   $ ls _build/.actions/default/blah*
-  _build/.actions/default/blah-6e90ca359837e9da9d2387e4bdfedc59
+  _build/.actions/default/blah-071288697f0ea34c0a7d87ff61a74717
 
 And we check that it isn't copied in the source tree:
 
