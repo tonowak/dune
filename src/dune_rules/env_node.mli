@@ -28,7 +28,6 @@ val make
   -> default_context_flags:string list Action_builder.t Foreign_language.Dict.t
   -> default_env:Env.t
   -> default_bin_artifacts:Artifacts.Bin.t
-  -> default_bin_annot:bool
   -> t
 
 val scope : t -> Scope.t
@@ -45,4 +44,3 @@ val coq : t -> Coq.t Action_builder.t Memo.t
 val menhir_flags : t -> string list Action_builder.t
 val format_config : t -> Format_config.t Memo.t
 val set_format_config : t -> Format_config.t -> t
-val bin_annot : t -> bool Memo.t

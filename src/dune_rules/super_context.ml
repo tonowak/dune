@@ -173,7 +173,6 @@ end = struct
       ~default_context_flags
       ~default_env:t.context_env
       ~default_bin_artifacts:t.bin_artifacts
-      ~default_bin_annot:true
   ;;
 
   (* Here we jump through some hoops to construct [t] as well as create a
@@ -337,7 +336,6 @@ let link_flags t ~dir (spec : Link_flags.Spec.t) =
 
 let local_binaries t ~dir = Env_tree.get_node t ~dir >>= Env_node.local_binaries
 let env_node = Env_tree.get_node
-let bin_annot t ~dir = Env_tree.get_node t ~dir >>= Env_node.bin_annot
 
 let dump_env t ~dir =
   let ocaml_flags = Env_tree.get_node t ~dir >>= Env_node.ocaml_flags in
@@ -498,7 +496,6 @@ let create ~(context : Context.t) ~host ~packages ~stanzas =
           ~default_context_flags
           ~default_env:context_env
           ~default_bin_artifacts:artifacts.bin
-          ~default_bin_annot:true
       in
       make
         ~config_stanza:context.env_nodes.context
