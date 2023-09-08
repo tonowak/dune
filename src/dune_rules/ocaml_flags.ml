@@ -172,3 +172,5 @@ let with_vendored_flags flags ~ocaml_version =
   then with_vendored_alerts with_warnings
   else with_warnings
 ;;
+
+let open_ name = Command.Args.As [ "-open"; Module_name.to_string name ]
