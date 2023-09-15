@@ -186,13 +186,22 @@ let build_cm cctx ~force_write_cmi ~precompiled_cmi ~cm_kind (m : Module.t)
      match cm_kind with
      | Ocaml Cmx -> (other_targets, Command.Args.empty)
      | Ocaml (Cmi | Cmo) | Melange (Cmi | Cmj) ->
-       if Compilation_context.bin_annot cctx then
-         let fn =
-           Option.value_exn
-             (Obj_dir.Module.cmt_file obj_dir m ~cm_kind ~ml_kind)
-         in
-         (fn :: other_targets, A "-bin-annot")
-       else (other_targets, Command.Args.empty)
+       let targets, (args : _ Command.Args.t) =
+          if Compilation_context.bin_annot cctx then
+            let fn =
+              Option.value_exn
+                (Obj_dir.Module.cmt_file obj_dir m ~cm_kind ~ml_kind)
+            in
+            (fn :: other_targets, A "-bin-annot")
+          else (other_targets, Command.Args.empty)
+       in
+       let extra_targets =
+         match cm_kind with
+         | Ocaml Cmo ->
+          [Option.value_exn (Obj_dir.Module.cms_file obj_dir m ~cm_kind ~ml_kind)]
+         | _ -> []
+       in
+       extra_targets @ targets, args
    in
    let opaque_arg : _ Command.Args.t =
      let intf_only = cm_kind = Ocaml Cmi && not (Module.has m ~ml_kind:Impl) in

@@ -21,6 +21,10 @@ let cmt_ext = function
   | Impl -> ".cmt"
   | Intf -> ".cmti"
 
+let cms_ext = function
+  | Impl -> ".cms"
+  | Intf -> ".cmsi"
+
 module Dict = struct
   type 'a t =
     { impl : 'a
